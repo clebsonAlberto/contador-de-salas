@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2B3A55">
+<title>Contador de Salas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6F2E7;
+    --paper-line: #DCD3BC;
+    --ink: #2B3A55;
+    --ink-soft: #5A6A87;
+    --red: #B23A2E;
+    --sage: #7C8C63;
+    --charcoal: #34302A;
+    --white: #FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(var(--paper) 0 34px, var(--paper-line) 34px 35px);
+    color:var(--charcoal);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding:0 0 60px 0;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px;}
+
+  header{
+    padding:36px 24px 20px 24px;
+    max-width:900px;margin:0 auto;
+    border-bottom:2px solid var(--ink);
+    position:relative;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:3px;
+    background:var(--red);
+  }
+  header .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 6px 14px;
+  }
+  header h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:38px;
+    margin:0 0 4px 14px;
+    color:var(--ink);
+  }
+  header p{
+    margin:0 0 0 14px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  nav{
+    display:flex;
+    gap:4px;
+    max-width:900px;margin:24px auto 0 auto;
+    padding:0 24px;
+  }
+  nav button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:.04em;
+    background:none;
+    border:none;
+    border-bottom:2px solid transparent;
+    padding:10px 4px;
+    margin-right:22px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  nav button.active{
+    color:var(--ink);
+    border-bottom-color:var(--red);
+    font-weight:600;
+  }
+
+  main{max-width:900px;margin:0 auto;padding:26px 24px 0 24px;}
+  .card{
+    background:var(--white);
+    border:1px solid var(--paper-line);
+    border-radius:2px;
+    padding:22px 24px;
+    margin-bottom:20px;
+    box-shadow:0 1px 0 rgba(43,58,85,.05);
+  }
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 16px 0;
+  }
+
+  label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:5px;
+  }
+  input[type="date"], select{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    padding:8px 10px;
+    border:1px solid var(--paper-line);
+    background:var(--paper);
+    color:var(--charcoal);
+    border-radius:2px;
+  }
+
+  .rooms-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+    gap:12px;
+    margin-top:18px;
+  }
+  .room-box{
+    border:1px solid var(--paper-line);
+    background:var(--paper);
+    padding:10px 10px 8px 10px;
+    border-radius:2px;
+  }
+  .room-box .room-name{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:13px;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .room-box input[type="number"]{
+    width:100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:20px;
+    font-weight:600;
+    border:none;
+    border-bottom:1px solid var(--ink-soft);
+    background:transparent;
+    color:var(--red);
+    padding:2px 0;
+  }
+  .room-box input[type="number"]:focus{outline:none;border-bottom-color:var(--red);}
+
+  .total-line{
+    margin-top:20px;
+    padding-top:14px;
+    border-top:1px dashed var(--paper-line);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  .total-line .label{
+    font-family:'IBM Plex Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .total-line .value{
+    font-family:'Fraunces', serif;
+    font-size:30px;
+    font-weight:700;
+    color:var(--ink);
+  }
+
+  button.primary{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    background:var(--ink);
+    color:var(--white);
+    border:none;
+    padding:11px 20px;
+    border-radius:2px;
+    cursor:pointer;
+    margin-top:18px;
+  }
+  button.primary:hover{background:var(--red);}
+  button.ghost{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    background:none;
+    border:1px solid var(--paper-line);
+    color:var(--ink-soft);
+    padding:5px 10px;
+    border-radius:2px;
+    cursor:pointer;
+  }
+  button.ghost:hover{border-color:var(--red);color:var(--red);}
+  button.danger{color:var(--red);border-color:var(--red);}
+
+  .filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .filters button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    padding:7px 14px;
+    border-radius:2px;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .filters button.active{
+    background:var(--ink);
+    color:var(--white);
+    border-color:var(--ink);
+  }
+
+  table{width:100%;border-collapse:collapse;}
+  th{
+    text-align:left;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--ink);
+    padding:8px 6px;
+  }
+  td{
+    padding:8px 6px;
+    border-bottom:1px solid var(--paper-line);
+    font-size:14px;
+  }
+  td.num{font-family:'IBM Plex Mono', monospace;color:var(--red);font-weight:600;}
+  td input[type="number"]{
+    width:64px;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    color:var(--red);
+    border:1px solid var(--paper-line);
+    padding:3px 6px;
+    border-radius:2px;
+  }
+  .date-group-header td{
+    background:var(--paper);
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    color:var(--ink);
+    font-size:15px;
+    border-bottom:1px solid var(--ink);
+  }
+  .row-actions{display:flex;gap:6px;}
+
+  .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .bar-room{width:44px;font-family:'IBM Plex Mono', monospace;font-size:13px;font-weight:600;color:var(--ink);}
+  .bar-track{flex:1;background:var(--paper);border:1px solid var(--paper-line);height:18px;position:relative;border-radius:2px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--sage);}
+  .bar-value{width:36px;text-align:right;font-family:'IBM Plex Mono', monospace;font-size:13px;color:var(--ink-soft);}
+
+  .empty{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .empty .big{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    color:var(--ink);
+    display:block;
+    margin-bottom:6px;
+  }
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:var(--white);
+    padding:10px 20px;
+    border-radius:2px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    opacity:0;
+    transition:opacity .25s ease;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+  .note{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+
+  /* ---- Mobile-first touch adjustments ---- */
+  input[type="number"], input[type="date"], select{
+    font-size:16px; /* evita zoom automático no Android/iOS ao focar */
+  }
+  button.primary, button.ghost{
+    min-height:44px; /* alvo de toque recomendado */
+  }
+  nav button{
+    min-height:40px;
+  }
+
+  @media (max-width: 640px){
+    header{padding:26px 16px 16px 16px;}
+    header h1{font-size:28px;}
+    main{padding:20px 12px 0 12px;}
+    .card{padding:16px 14px;}
+    nav{padding:0 12px;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    nav button{margin-right:14px;white-space:nowrap;font-size:12px;}
+    .rooms-grid{grid-template-columns:repeat(2, 1fr);}
+    .room-box input[type="number"]{font-size:24px;padding:6px 0;}
+    .total-line .value{font-size:26px;}
+    button.primary{width:100%;padding:13px 20px;}
+    .filters{gap:6px;}
+    .filters button{flex:1 1 calc(50% - 6px);text-align:center;padding:10px 8px;min-height:40px;}
+
+    /* Tabela de registros vira lista de cartões */
+    #registros-table thead{display:none;}
+    #registros-table, #registros-table tbody, #registros-table tr, #registros-table td{
+      display:block;
+      width:100%;
+    }
+    #registros-body tr{
+      border:1px solid var(--paper-line);
+      border-radius:3px;
+      margin-bottom:10px;
+      padding:4px 12px;
+      background:var(--white);
+    }
+    #registros-body tr.date-group-header{
+      border:none;
+      background:none;
+      padding:14px 2px 6px 2px;
+      margin-bottom:4px;
+    }
+    #registros-body td{
+      border-bottom:none;
+      padding:8px 0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    #registros-body td:not(:last-child){
+      border-bottom:1px dashed var(--paper-line);
+    }
+    #registros-body td:first-child::before{
+      content:"Sala";
+      font-family:'IBM Plex Mono', monospace;
+      font-size:11px;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    #registros-body td.num::before{
+      content:"Contagem";
+      font-family:'IBM Plex Mono', monospace;
+      font-size:11px;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    #registros-body td.num{justify-content:flex-end;gap:10px;}
+    #registros-body .row-actions{width:100%;justify-content:flex-end;}
+    #registros-body .row-actions button{flex:0 0 auto;min-height:38px;padding:8px 12px;}
+
+    .bar-row{gap:8px;}
+    .bar-room{width:36px;font-size:12px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Registro diário</div>
+  <h1>Contador de Salas</h1>
+  <p>Contagem de alunos por sala — dados compartilhados entre todos que acessam este link</p>
+</header>
+
+<nav>
+  <button data-tab="registrar" class="active">Registrar</button>
+  <button data-tab="registros">Registros</button>
+  <button data-tab="resumo">Resumo</button>
+</nav>
+
+<main>
+
+  <!-- REGISTRAR -->
+  <section id="tab-registrar">
+    <div class="card">
+      <h2>Nova contagem</h2>
+      <label for="reg-date">Data</label>
+      <input type="date" id="reg-date">
+      <div class="rooms-grid" id="rooms-grid"></div>
+      <div class="total-line">
+        <span class="label">Total geral</span>
+        <span class="value" id="reg-total">0</span>
+      </div>
+      <button class="primary" id="btn-save">Salvar contagem do dia</button>
+      <div class="note" id="reg-note"></div>
+    </div>
+  </section>
+
+  <!-- REGISTROS -->
+  <section id="tab-registros" style="display:none;">
+    <div class="card">
+      <h2>Histórico</h2>
+      <div class="filters">
+        <button data-period="semana" class="active">Semana</button>
+        <button data-period="mes">Mês</button>
+        <button data-period="ano">Ano</button>
+        <button data-period="todos">Todos</button>
+      </div>
+      <table id="registros-table">
+        <thead>
+          <tr><th>Sala</th><th>Contagem</th><th></th></tr>
+        </thead>
+        <tbody id="registros-body"></tbody>
+      </table>
+      <div class="empty" id="registros-empty" style="display:none;">
+        <span class="big">Nenhum registro neste período</span>
+        Registre uma contagem na aba Registrar.
+      </div>
+    </div>
+  </section>
+
+  <!-- RESUMO -->
+  <section id="tab-resumo" style="display:none;">
+    <div class="card">
+      <h2>Resumo por período</h2>
+      <div class="filters">
+        <button data-rperiod="semana" class="active">Semana</button>
+        <button data-rperiod="mes">Mês</button>
+        <button data-rperiod="ano">Ano</button>
+      </div>
+      <div id="resumo-bars"></div>
+      <div class="total-line">
+        <span class="label">Total do período</span>
+        <span class="value" id="resumo-total">0</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ROOMS = ["1°A","1°B","1°C","2°A","2°B","2°C","3°A","3°B","3°C","4°A","4°B","5°A","5°B"];
+let records = []; // {id, date: 'YYYY-MM-DD', room, count}
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+async function loadRecords(){
+  try{
+    const res = await fetch('/api/registros');
+    records = await res.json();
+  }catch(e){
+    records = [];
+    toast('Não foi possível conectar ao servidor.');
+  }
+}
+
+// ---------- Registrar ----------
+function buildRoomsGrid(){
+  const grid = document.getElementById('rooms-grid');
+  grid.innerHTML = '';
+  ROOMS.forEach(room=>{
+    const box = document.createElement('div');
+    box.className = 'room-box';
+    box.innerHTML = `<div class="room-name">${room}</div><input type="number" min="0" value="0" data-room="${room}">`;
+    grid.appendChild(box);
+  });
+  grid.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', updateRegTotal);
+  });
+}
+
+function updateRegTotal(){
+  let total = 0;
+  document.querySelectorAll('#rooms-grid input').forEach(inp=>{
+    total += Number(inp.value) || 0;
+  });
+  document.getElementById('reg-total').textContent = total;
+}
+
+function loadDateIntoForm(dateStr){
+  document.querySelectorAll('#rooms-grid input').forEach(inp=>{
+    const room = inp.dataset.room;
+    const rec = records.find(r=>r.date===dateStr && r.room===room);
+    inp.value = rec ? rec.count : 0;
+  });
+  updateRegTotal();
+}
+
+async function saveDay(){
+  const dateStr = document.getElementById('reg-date').value || todayStr();
+  const contagens = [];
+  document.querySelectorAll('#rooms-grid input').forEach(inp=>{
+    contagens.push({ room: inp.dataset.room, count: Number(inp.value) || 0 });
+  });
+  try{
+    const res = await fetch('/api/registros/dia', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ date: dateStr, contagens })
+    });
+    if(!res.ok) throw new Error('falha');
+    await loadRecords();
+    toast('Contagem salva.');
+    renderRegistros();
+    renderResumo();
+  }catch(e){
+    toast('Erro ao salvar. Verifique a conexão com o servidor.');
+  }
+}
+
+// ---------- Registros ----------
+let currentPeriod = 'semana';
+
+function inPeriod(dateStr, period){
+  const d = new Date(dateStr+'T00:00:00');
+  const now = new Date();
+  if(period==='todos') return true;
+  if(period==='semana'){
+    const diff = (now - d) / 86400000;
+    return diff >= 0 && diff <= 6;
+  }
+  if(period==='mes'){
+    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+  }
+  if(period==='ano'){
+    return d.getFullYear()===now.getFullYear();
+  }
+  return true;
+}
+
+function renderRegistros(){
+  const body = document.getElementById('registros-body');
+  const emptyEl = document.getElementById('registros-empty');
+  body.innerHTML = '';
+
+  const filtered = records.filter(r=>inPeriod(r.date, currentPeriod));
+  const dates = [...new Set(filtered.map(r=>r.date))].sort((a,b)=>b.localeCompare(a));
+
+  if(dates.length===0){
+    emptyEl.style.display='block';
+    return;
+  }
+  emptyEl.style.display='none';
+
+  dates.forEach(date=>{
+    const headerRow = document.createElement('tr');
+    headerRow.className = 'date-group-header';
+    const dObj = new Date(date+'T00:00:00');
+    const label = dObj.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+    headerRow.innerHTML = `<td colspan="3">${label}</td>`;
+    body.appendChild(headerRow);
+
+    const dayRecords = filtered.filter(r=>r.date===date).sort((a,b)=>a.room.localeCompare(b.room));
+    dayRecords.forEach(rec=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${rec.room}</td>
+        <td class="num" data-id="${rec.id}"><span class="display-count">${rec.count}</span><input type="number" min="0" value="${rec.count}" style="display:none;"></td>
+        <td>
+          <div class="row-actions">
+            <button class="ghost btn-edit">Editar</button>
+            <button class="ghost danger btn-delete">Excluir</button>
+          </div>
+        </td>
+      `;
+      body.appendChild(tr);
+
+      const numCell = tr.querySelector('td.num');
+      const span = numCell.querySelector('.display-count');
+      const input = numCell.querySelector('input');
+      const editBtn = tr.querySelector('.btn-edit');
+      const delBtn = tr.querySelector('.btn-delete');
+
+      editBtn.addEventListener('click', async ()=>{
+        if(editBtn.textContent==='Editar'){
+          span.style.display='none';
+          input.style.display='inline-block';
+          input.focus();
+          editBtn.textContent='Salvar';
+        } else {
+          const newVal = Number(input.value) || 0;
+          try{
+            const res = await fetch(`/api/registros/${encodeURIComponent(rec.id)}`, {
+              method:'PUT',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ count: newVal })
+            });
+            if(!res.ok) throw new Error('falha');
+            await loadRecords();
+            toast('Registro atualizado.');
+            renderRegistros();
+            renderResumo();
+          }catch(e){
+            toast('Erro ao atualizar. Verifique a conexão.');
+          }
+        }
+      });
+
+      delBtn.addEventListener('click', async ()=>{
+        try{
+          const res = await fetch(`/api/registros/${encodeURIComponent(rec.id)}`, { method:'DELETE' });
+          if(!res.ok) throw new Error('falha');
+          await loadRecords();
+          toast('Registro excluído.');
+          renderRegistros();
+          renderResumo();
+        }catch(e){
+          toast('Erro ao excluir. Verifique a conexão.');
+        }
+      });
+    });
+  });
+}
+
+// ---------- Resumo ----------
+let currentRPeriod = 'semana';
+
+function renderResumo(){
+  const container = document.getElementById('resumo-bars');
+  container.innerHTML = '';
+  const filtered = records.filter(r=>inPeriod(r.date, currentRPeriod));
+
+  const totals = {};
+  ROOMS.forEach(r=>totals[r]=0);
+  filtered.forEach(r=>{ totals[r.room] = (totals[r.room]||0) + r.count; });
+
+  const maxVal = Math.max(1, ...Object.values(totals));
+  let grandTotal = 0;
+
+  ROOMS.forEach(room=>{
+    const val = totals[room] || 0;
+    grandTotal += val;
+    const pct = Math.round((val/maxVal)*100);
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <div class="bar-room">${room}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-value">${val}</div>
+    `;
+    container.appendChild(row);
+  });
+
+  document.getElementById('resumo-total').textContent = grandTotal;
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ['registrar','registros','resumo'].forEach(tab=>{
+      document.getElementById('tab-'+tab).style.display = (tab===btn.dataset.tab) ? 'block' : 'none';
+    });
+  });
+});
+
+document.querySelectorAll('.filters button[data-period]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filters button[data-period]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPeriod = btn.dataset.period;
+    renderRegistros();
+  });
+});
+
+document.querySelectorAll('.filters button[data-rperiod]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filters button[data-rperiod]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRPeriod = btn.dataset.rperiod;
+    renderResumo();
+  });
+});
+
+document.getElementById('reg-date').addEventListener('change', (e)=>{
+  loadDateIntoForm(e.target.value);
+});
+
+document.getElementById('btn-save').addEventListener('click', saveDay);
+
+// ---------- Init ----------
+async function init(){
+  document.getElementById('reg-date').value = todayStr();
+  buildRoomsGrid();
+  await loadRecords();
+  loadDateIntoForm(todayStr());
+  renderRegistros();
+  renderResumo();
+}
+init();
+</script>
+
+</body>
+</html>

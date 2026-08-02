@@ -1,0 +1,12 @@
+{
+  "name": "contador-de-salas",
+  "version": "1.0.0",
+  "description": "Sistema web de contagem de alunos por sala - EMEF",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
