@@ -1,83 +1,227 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const DATA_DIR = path.join(__dirname, 'data');
-const DATA_FILE = path.join(DATA_DIR, 'registros.json');
+// =====================================================
+// CONEXÃO COM POSTGRESQL
+// =====================================================
+
+if (!process.env.DATABASE_URL) {
+  console.error('ERRO: DATABASE_URL não foi configurada.');
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false
+});
+
+// Testa a conexão com o banco
+pool.query('SELECT NOW()')
+  .then(() => {
+    console.log('✅ PostgreSQL conectado com sucesso!');
+  })
+  .catch((error) => {
+    console.error('❌ Erro ao conectar ao PostgreSQL:', error.message);
+  });
+
+// =====================================================
+// CONFIGURAÇÕES
+// =====================================================
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// ---------- Banco de dados (arquivo JSON) ----------
-function ensureDataFile() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
-}
+// =====================================================
+// LISTAR TODOS OS REGISTROS
+// =====================================================
 
-function readRecords() {
-  ensureDataFile();
+app.get('/api/registros', async (req, res) => {
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-  } catch (e) {
-    return [];
+    const result = await pool.query(`
+      SELECT
+        id,
+        date,
+        room,
+        count,
+        created_at,
+        updated_at
+      FROM registros
+      ORDER BY date DESC, room ASC
+    `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Erro ao buscar registros:', error);
+    res.status(500).json({
+      error: 'Erro ao buscar registros'
+    });
   }
-}
-
-function writeRecords(records) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(records, null, 2), 'utf-8');
-}
-
-// ---------- Rotas da API ----------
-
-// Lista todos os registros
-app.get('/api/registros', (req, res) => {
-  res.json(readRecords());
 });
 
-// Salva/atualiza as contagens de um dia inteiro
-// body: { date: "2026-08-02", contagens: [{room: "1°A", count: 25}, ...] }
-app.post('/api/registros/dia', (req, res) => {
+// =====================================================
+// SALVAR CONTAGENS DE UM DIA
+// =====================================================
+
+app.post('/api/registros/dia', async (req, res) => {
+
   const { date, contagens } = req.body;
+
   if (!date || !Array.isArray(contagens)) {
-    return res.status(400).json({ error: 'date e contagens são obrigatórios' });
+    return res.status(400).json({
+      error: 'date e contagens são obrigatórios'
+    });
   }
-  const records = readRecords();
-  contagens.forEach(({ room, count }) => {
-    const id = `${date}|${room}`;
-    const idx = records.findIndex(r => r.id === id);
-    if (idx >= 0) {
-      records[idx].count = count;
-    } else {
-      records.push({ id, date, room, count });
+
+  const client = await pool.connect();
+
+  try {
+
+    await client.query('BEGIN');
+
+    for (const item of contagens) {
+
+      const { room, count } = item;
+
+      if (!room) {
+        continue;
+      }
+
+      const id = `${date}|${room}`;
+
+      await client.query(`
+        INSERT INTO registros
+          (id, date, room, count)
+        VALUES
+          ($1, $2, $3, $4)
+        ON CONFLICT (date, room)
+        DO UPDATE SET
+          count = EXCLUDED.count,
+          updated_at = CURRENT_TIMESTAMP
+      `, [
+        id,
+        date,
+        room,
+        Number(count) || 0
+      ]);
     }
-  });
-  writeRecords(records);
-  res.json({ ok: true });
+
+    await client.query('COMMIT');
+
+    res.json({
+      ok: true,
+      message: 'Registros salvos com sucesso'
+    });
+
+  } catch (error) {
+
+    await client.query('ROLLBACK');
+
+    console.error('Erro ao salvar registros:', error);
+
+    res.status(500).json({
+      error: 'Erro ao salvar registros'
+    });
+
+  } finally {
+
+    client.release();
+
+  }
 });
 
-// Atualiza um registro específico (edição na aba Registros)
-app.put('/api/registros/:id', (req, res) => {
+// =====================================================
+// ATUALIZAR UM REGISTRO
+// =====================================================
+
+app.put('/api/registros/:id', async (req, res) => {
+
   const { count } = req.body;
-  const records = readRecords();
-  const idx = records.findIndex(r => r.id === req.params.id);
-  if (idx < 0) return res.status(404).json({ error: 'registro não encontrado' });
-  records[idx].count = Number(count) || 0;
-  writeRecords(records);
-  res.json({ ok: true });
+  const { id } = req.params;
+
+  try {
+
+    const result = await pool.query(`
+      UPDATE registros
+      SET
+        count = $1,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `, [
+      Number(count) || 0,
+      id
+    ]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: 'registro não encontrado'
+      });
+    }
+
+    res.json({
+      ok: true,
+      registro: result.rows[0]
+    });
+
+  } catch (error) {
+
+    console.error('Erro ao atualizar registro:', error);
+
+    res.status(500).json({
+      error: 'Erro ao atualizar registro'
+    });
+  }
 });
 
-// Exclui um registro
-app.delete('/api/registros/:id', (req, res) => {
-  let records = readRecords();
-  records = records.filter(r => r.id !== req.params.id);
-  writeRecords(records);
-  res.json({ ok: true });
+// =====================================================
+// EXCLUIR UM REGISTRO
+// =====================================================
+
+app.delete('/api/registros/:id', async (req, res) => {
+
+  const { id } = req.params;
+
+  try {
+
+    const result = await pool.query(`
+      DELETE FROM registros
+      WHERE id = $1
+      RETURNING *
+    `, [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: 'registro não encontrado'
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: 'Registro excluído com sucesso'
+    });
+
+  } catch (error) {
+
+    console.error('Erro ao excluir registro:', error);
+
+    res.status(500).json({
+      error: 'Erro ao excluir registro'
+    });
+  }
 });
+
+// =====================================================
+// INICIAR SERVIDOR
+// =====================================================
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-  console.log('Para acessar de um celular na mesma rede Wi-Fi, use o IP deste computador em vez de "localhost".');
+
+  console.log(`Servidor rodando na porta ${PORT}`);
+
 });
