@@ -475,7 +475,12 @@ function toast(msg){
 async function loadRecords(){
   try{
     const res = await fetch('/api/registros');
-    records = await res.json();
+    const data = await res.json();
+
+records = data.map(r => ({
+  ...r,
+  date: String(r.date).slice(0, 10)
+}));
   }catch(e){
     records = [];
     toast('Não foi possível conectar ao servidor.');
