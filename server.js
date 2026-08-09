@@ -64,6 +64,40 @@ app.get('/api/registros', async (req, res) => {
   }
 });
 
+// ================================================
+// LISTAR AUDITORIA DOS REGISTROS
+// ================================================
+
+app.get('/api/auditoria', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        registro_id,
+        acao,
+        date,
+        room,
+        count,
+        count_anterior,
+        room_anterior,
+        date_anterior,
+        alterado_em
+      FROM auditoria_registros
+      ORDER BY alterado_em DESC
+    `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Erro ao buscar auditoria:', error);
+
+    res.status(500).json({
+      error: 'Erro ao buscar auditoria'
+    });
+  }
+});
+
+
 // =====================================================
 // SALVAR CONTAGENS DE UM DIA
 // =====================================================
