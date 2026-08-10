@@ -392,6 +392,7 @@
   <button data-tab="registrar" class="active">Registrar</button>
   <button data-tab="registros">Registros</button>
   <button data-tab="resumo">Resumo</button>
+  <button data-tab="auditoria">Auditoria</button>
 </nav>
 
 <main>
@@ -451,6 +452,33 @@
       </div>
     </div>
   </section>
+
+  <!-- AUDITORIA -->
+<section id="tab-auditoria" style="display:none;">
+  <div class="card">
+    <h2>Histórico de alterações</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Ação</th>
+            <th>Sala</th>
+            <th>Antes</th>
+            <th>Depois</th>
+          </tr>
+        </thead>
+
+        <tbody id="auditoria-body"></tbody>
+      </table>
+    </div>
+
+    <div class="empty" id="auditoria-empty" style="display:none;">
+      <span class="big">Nenhuma alteração registrada.</span>
+    </div>
+  </div>
+</section>
 
 </main>
 
@@ -697,23 +725,84 @@ function renderResumo(){
   document.getElementById('resumo-total').textContent = grandTotal;
 }
 
+async function renderAuditoria(){
+  const body = document.getElementById('auditoria-body');
+  const empty = document.getElementById('auditoria-empty');
+
+  body.innerHTML = '';
+
+  try{
+    const res = await fetch('/api/auditoria');
+
+    if(!res.ok){
+      throw new Error('falha');
+    }
+
+    const auditoria = await res.json();
+
+    if(auditoria.length === 0){
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+
+    auditoria.forEach(item => {
+      const tr = document.createElement('tr');
+
+      const dataHora = item.alterado_em
+        ? new Date(item.alterado_em).toLocaleString('pt-BR')
+        : '-';
+
+      let antes = '-';
+      let depois = '-';
+
+      if(item.acao === 'INSERT'){
+        depois = item.count ?? '-';
+      }
+
+      if(item.acao === 'UPDATE'){
+        antes = item.count_anterior ?? '-';
+        depois = item.count ?? '-';
+      }
+
+      if(item.acao === 'DELETE'){
+        antes = item.count_anterior ?? item.count ?? '-';
+        depois = 'Excluído';
+      }
+
+      tr.innerHTML = `
+        <td>${dataHora}</td>
+        <td>${item.acao}</td>
+        <td>${item.room || item.room_anterior || '-'}</td>
+        <td>${antes}</td>
+        <td>${depois}</td>
+      `;
+
+      body.appendChild(tr);
+    });
+
+  }catch(e){
+    empty.style.display = 'block';
+    empty.querySelector('.big').textContent =
+      'Não foi possível carregar a auditoria.';
+  }
+}
+
 // ---------- Tabs ----------
 document.querySelectorAll('nav button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    ['registrar','registros','resumo'].forEach(tab=>{
-      document.getElementById('tab-'+tab).style.display = (tab===btn.dataset.tab) ? 'block' : 'none';
-    });
-  });
-});
 
-document.querySelectorAll('.filters button[data-period]').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.filters button[data-period]').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPeriod = btn.dataset.period;
-    renderRegistros();
+    ['registrar','registros','resumo','auditoria'].forEach(tab=>{
+      document.getElementById('tab-'+tab).style.display =
+        (tab===btn.dataset.tab) ? 'block' : 'none';
+    });
+
+    if(btn.dataset.tab === 'auditoria'){
+      renderAuditoria();
+    }
   });
 });
 
