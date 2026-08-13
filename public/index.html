@@ -457,6 +457,48 @@
 <section id="tab-auditoria" style="display:none;">
   <div class="card">
     <h2>Histórico de alterações</h2>
+    <div class="filters auditoria-filters">
+
+  <div>
+    <label for="aud-data-inicial">Data inicial</label>
+    <input type="date" id="aud-data-inicial">
+  </div>
+
+  <div>
+    <label for="aud-data-final">Data final</label>
+    <input type="date" id="aud-data-final">
+  </div>
+
+  <div>
+    <label for="aud-sala">Sala</label>
+    <input
+      type="text"
+      id="aud-sala"
+      placeholder="Ex.: 1ºA"
+    >
+  </div>
+
+  <div>
+    <label for="aud-acao">Ação</label>
+    <select id="aud-acao">
+      <option value="">Todas</option>
+      <option value="INSERT">Inclusões</option>
+      <option value="UPDATE">Alterações</option>
+      <option value="DELETE">Exclusões</option>
+    </select>
+  </div>
+
+  <div>
+    <button
+      type="button"
+      class="ghost"
+      id="btn-limpar-auditoria"
+    >
+      Limpar filtros
+    </button>
+  </div>
+
+</div>
 
     <div class="table-wrap">
       <table>
@@ -740,14 +782,57 @@ async function renderAuditoria(){
 
     const auditoria = await res.json();
 
-    if(auditoria.length === 0){
+    const dataInicial =
+      document.getElementById('aud-data-inicial').value;
+
+    const dataFinal =
+      document.getElementById('aud-data-final').value;
+
+    const salaFiltro =
+      document.getElementById('aud-sala')
+        .value.trim().toLowerCase();
+
+    const acaoFiltro =
+      document.getElementById('aud-acao').value;
+
+    const auditoriaFiltrada = auditoria.filter(item => {
+
+      const dataItem = item.alterado_em
+        ? String(item.alterado_em).slice(0, 10)
+        : '';
+
+      const salaItem = String(
+        item.room || item.room_anterior || ''
+      ).toLowerCase();
+
+      if(dataInicial && dataItem < dataInicial){
+        return false;
+      }
+
+      if(dataFinal && dataItem > dataFinal){
+        return false;
+      }
+
+      if(salaFiltro && !salaItem.includes(salaFiltro)){
+        return false;
+      }
+
+      if(acaoFiltro && item.acao !== acaoFiltro){
+        return false;
+      }
+
+      return true;
+    });
+
+   
+        if(auditoriaFiltrada.length === 0){
       empty.style.display = 'block';
       return;
     }
 
     empty.style.display = 'none';
 
-    auditoria.forEach(item => {
+    auditoriaFiltrada.forEach(item => {
       const tr = document.createElement('tr');
 
       const dataHora = item.alterado_em
@@ -788,6 +873,31 @@ async function renderAuditoria(){
       'Não foi possível carregar a auditoria.';
   }
 }
+
+// FILTROS DA AUDITORIA
+
+document.getElementById('aud-data-inicial')
+  .addEventListener('change', renderAuditoria);
+
+document.getElementById('aud-data-final')
+  .addEventListener('change', renderAuditoria);
+
+document.getElementById('aud-sala')
+  .addEventListener('input', renderAuditoria);
+
+document.getElementById('aud-acao')
+  .addEventListener('change', renderAuditoria);
+
+document.getElementById('btn-limpar-auditoria')
+  .addEventListener('click', () => {
+
+    document.getElementById('aud-data-inicial').value = '';
+    document.getElementById('aud-data-final').value = '';
+    document.getElementById('aud-sala').value = '';
+    document.getElementById('aud-acao').value = '';
+
+    renderAuditoria();
+  });
 
 // ---------- Tabs ----------
 document.querySelectorAll('nav button').forEach(btn=>{
