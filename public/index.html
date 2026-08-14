@@ -563,14 +563,7 @@
       <button data-rperiod="ano">Ano</button>
       </div>
 
-      <button
-        type="button"
-        class="ghost"
-        id="btn-imprimir-resumo"
->
-        Imprimir / Salvar em PDF
-      </button>
-
+      
       <div id="relatorio-cabecalho" class="relatorio-cabecalho">
       <h1>Relatório de Contagem de Alunos</h1>
         <p id="relatorio-periodo">Período: -</p>
@@ -1255,12 +1248,6 @@ function atualizarCabecalhoRelatorio() {
   }
 }
 
-// ---------- IMPRIMIR RESUMO ----------
-document.getElementById('btn-imprimir-resumo')
-  .addEventListener('click', () => {
-    atualizarCabecalhoRelatorio();
-    window.print();
-  });
 
 
 </script>
