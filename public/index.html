@@ -468,9 +468,28 @@
       size: A4;
       margin: 15mm;
     }
-    }  
 
+    #relatorio-cabecalho{
+      display:block !important;
+    }
+
+    }  
+    .relatorio-cabecalho{
+      display:none;
+      margin-bottom:20px;
+      text-align:center;
+    }
+
+    .relatorio-cabecalho h1{
+      margin:0 0 10px;
+      font-size:24px;
+    }
+
+    .relatorio-cabecalho p{
+      margin:4px 0;
+    }
   }
+
 </style>
 </head>
 <body>
@@ -551,6 +570,12 @@
 >
         Imprimir / Salvar em PDF
       </button>
+
+      <div id="relatorio-cabecalho" class="relatorio-cabecalho">
+      <h1>Relatório de Contagem de Alunos</h1>
+        <p id="relatorio-periodo">Período: -</p>
+        <p id="relatorio-emissao">Emitido em: -</p>
+      </div>
 
       <div id="resumo-bars"></div>
       <div class="total-line">
@@ -1121,6 +1146,22 @@ async function renderAuditoria(){
     empty.querySelector('.big').textContent =
       'Não foi possível carregar a auditoria.';
   }
+
+  function atualizarCabecalhoRelatorio(){
+
+  const nomesPeriodos = {
+    'semana': 'Semana atual',
+    'semana-passada': 'Semana passada',
+    'mes': 'Mês atual',
+    'ano': 'Ano atual'
+    };
+
+    document.getElementById('relatorio-periodo').textContent =
+    'Período: ' + (nomesPeriodos[currentRPeriod] || '-');
+
+    document.getElementById('relatorio-emissao').textContent =
+    'Emitido em: ' + new Date().toLocaleString('pt-BR');
+  }
 }
 
 // FILTROS DA AUDITORIA
@@ -1191,9 +1232,33 @@ async function init(){
 }
 init();
 
+function atualizarCabecalhoRelatorio() {
+
+  const nomesPeriodos = {
+    'semana': 'Semana atual',
+    'semana-passada': 'Semana passada',
+    'mes': 'Mês atual',
+    'ano': 'Ano atual'
+  };
+
+  const periodo = document.getElementById('relatorio-periodo');
+  const emissao = document.getElementById('relatorio-emissao');
+
+  if (periodo) {
+    periodo.textContent =
+      'Período: ' + (nomesPeriodos[currentRPeriod] || '-');
+  }
+
+  if (emissao) {
+    emissao.textContent =
+      'Emitido em: ' + new Date().toLocaleString('pt-BR');
+  }
+}
+
 // ---------- IMPRIMIR RESUMO ----------
 document.getElementById('btn-imprimir-resumo')
   .addEventListener('click', () => {
+    atualizarCabecalhoRelatorio();
     window.print();
   });
 
