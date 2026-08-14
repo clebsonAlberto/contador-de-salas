@@ -489,6 +489,11 @@
         <span class="value" id="resumo-total">0</span>
       </div>
 
+      <div class="total-line">
+        <span class="label">Média diária</span>
+        <span class="value" id="resumo-media">0,0</span>
+      </div>
+
       <hr>
 
 <h3>Totais por dia</h3>
@@ -886,6 +891,18 @@ function renderResumo(){
   });
 
   document.getElementById('resumo-total').textContent = grandTotal;
+
+  const diasComRegistro = [...new Set(filtered.map(r => r.date))].length;
+
+const mediaDiaria = diasComRegistro > 0
+  ? grandTotal / diasComRegistro
+  : 0;
+
+document.getElementById('resumo-media').textContent =
+  mediaDiaria.toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
 
   // ---------- TOTAIS POR DIA ----------
 const diarioBody = document.getElementById('resumo-diario-body');
