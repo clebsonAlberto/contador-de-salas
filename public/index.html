@@ -303,6 +303,20 @@
     margin-top:10px;
   }
 
+  .day-total-row td{
+  padding:10px 6px 18px 6px;
+  border-bottom:2px solid var(--ink);
+  }
+
+  .day-total-row .total-line{
+  margin-top:0;
+  padding-top:10px;
+  }
+
+  .day-total-row .value{
+  color:var(--red);
+  }
+
   /* ---- Mobile-first touch adjustments ---- */
   input[type="number"], input[type="date"], select{
     font-size:16px; /* evita zoom automático no Android/iOS ao focar */
@@ -377,6 +391,25 @@
 
     .bar-row{gap:8px;}
     .bar-room{width:36px;font-size:12px;}
+    #registros-body tr.day-total-row{
+    border:2px solid var(--ink);
+    background:var(--paper);
+    }
+
+    #registros-body tr.day-total-row td{
+    display:block;
+    }
+
+    #registros-body tr.day-total-row td::before{
+    content:none;
+    }
+
+    #registros-body tr.day-total-row .total-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    }
+
   }
 </style>
 </head>
@@ -771,9 +804,12 @@ const totalRow = document.createElement('tr');
 totalRow.className = 'day-total-row';
 
 totalRow.innerHTML = `
-  <td><strong>TOTAL DO DIA</strong></td>
-  <td class="num"><strong>${totalDoDia}</strong></td>
-  <td></td>
+  <td colspan="3">
+    <div class="total-line">
+      <span class="label">TOTAL DO DIA</span>
+      <span class="value">${totalDoDia}</span>
+    </div>
+  </td>
 `;
 
 body.appendChild(totalRow);
