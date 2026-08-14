@@ -712,7 +712,11 @@ function renderRegistros(){
               method:'PUT',
               headers:{'Content-Type':'application/json'},
               body: JSON.stringify({ count: newVal })
-            });
+});
+
+
+
+
             if(!res.ok) throw new Error('falha');
             await loadRecords();
             toast('Registro atualizado.');
@@ -757,6 +761,23 @@ Esta ação não poderá ser desfeita.`
   }
 });
     });
+    // ---------- TOTAL DO DIA ----------
+const totalDoDia = dayRecords.reduce(
+  (soma, rec) => soma + (Number(rec.count) || 0),
+  0
+);
+
+const totalRow = document.createElement('tr');
+totalRow.className = 'day-total-row';
+
+totalRow.innerHTML = `
+  <td><strong>TOTAL DO DIA</strong></td>
+  <td class="num"><strong>${totalDoDia}</strong></td>
+  <td></td>
+`;
+
+body.appendChild(totalRow);
+// ---------- FIM TOTAL DO DIA ----------
   });
 }
 
