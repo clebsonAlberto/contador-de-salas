@@ -410,6 +410,66 @@
     align-items:center;
     }
 
+  @media print {
+
+    body {
+    background: white;
+    }
+
+    header,
+    nav,
+    #tab-registrar,
+    #tab-registros,
+    #tab-auditoria,
+    #btn-imprimir-resumo,
+    .filters {
+      display: none !important;
+    }
+
+    #tab-resumo {
+      display: block !important;
+    }
+
+    #tab-resumo .card {
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    #tab-resumo h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #resumo-bars .bar {
+      break-inside: avoid;
+    }
+
+    .total-line {
+      break-inside: avoid;
+    }
+
+    .table-wrap {
+      overflow: visible;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 1px solid #999;
+      padding: 8px;
+    }
+
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+    }  
+
   }
 </style>
 </head>
@@ -474,15 +534,24 @@
     <div class="card">
       <h2>Resumo por período</h2>
       <div class="filters">
-  <button data-rperiod="semana" class="active">Semana atual</button>
+      <button data-rperiod="semana" class="active">Semana atual</button>
 
-  <button data-rperiod="semana-passada">
-    Semana passada
-  </button>
+      <button data-rperiod="semana-passada">
+        Semana passada
+      </button>
 
-  <button data-rperiod="mes">Mês</button>
-  <button data-rperiod="ano">Ano</button>
-</div>
+      <button data-rperiod="mes">Mês</button>
+      <button data-rperiod="ano">Ano</button>
+      </div>
+
+      <button
+        type="button"
+        class="ghost"
+        id="btn-imprimir-resumo"
+>
+        Imprimir / Salvar em PDF
+      </button>
+
       <div id="resumo-bars"></div>
       <div class="total-line">
         <span class="label">Total do período</span>
@@ -1121,6 +1190,14 @@ async function init(){
   renderResumo();
 }
 init();
+
+// ---------- IMPRIMIR RESUMO ----------
+document.getElementById('btn-imprimir-resumo')
+  .addEventListener('click', () => {
+    window.print();
+  });
+
+
 </script>
 
 </body>
