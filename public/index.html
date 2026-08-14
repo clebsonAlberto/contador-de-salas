@@ -474,10 +474,15 @@
     <div class="card">
       <h2>Resumo por período</h2>
       <div class="filters">
-        <button data-rperiod="semana" class="active">Semana</button>
-        <button data-rperiod="mes">Mês</button>
-        <button data-rperiod="ano">Ano</button>
-      </div>
+  <button data-rperiod="semana" class="active">Semana atual</button>
+
+  <button data-rperiod="semana-passada">
+    Semana passada
+  </button>
+
+  <button data-rperiod="mes">Mês</button>
+  <button data-rperiod="ano">Ano</button>
+</div>
       <div id="resumo-bars"></div>
       <div class="total-line">
         <span class="label">Total do período</span>
@@ -673,19 +678,53 @@ async function saveDay(){
 let currentPeriod = 'semana';
 
 function inPeriod(dateStr, period){
-  const d = new Date(dateStr+'T00:00:00');
+  const d = new Date(dateStr + 'T00:00:00');
+
+  d.setHours(0, 0, 0, 0);
+
   const now = new Date();
-  if(period==='todos') return true;
-  if(period==='semana'){
-    const diff = (now - d) / 86400000;
-    return diff >= 0 && diff <= 6;
+  now.setHours(0, 0, 0, 0);
+
+  // Segunda-feira da semana atual
+  const diaSemana = now.getDay();
+  const ajusteSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+  const inicioSemanaAtual = new Date(now);
+  inicioSemanaAtual.setDate(now.getDate() + ajusteSegunda);
+
+  const fimSemanaAtual = new Date(inicioSemanaAtual);
+  fimSemanaAtual.setDate(inicioSemanaAtual.getDate() + 6);
+
+  // Semana passada
+  const inicioSemanaPassada = new Date(inicioSemanaAtual);
+  inicioSemanaPassada.setDate(inicioSemanaAtual.getDate() - 7);
+
+  const fimSemanaPassada = new Date(inicioSemanaAtual);
+  fimSemanaPassada.setDate(inicioSemanaAtual.getDate() - 1);
+
+  if(period === 'semana'){
+    return d >= inicioSemanaAtual &&
+           d <= fimSemanaAtual;
   }
-  if(period==='mes'){
-    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+
+  if(period === 'semana-passada'){
+    return d >= inicioSemanaPassada &&
+           d <= fimSemanaPassada;
   }
-  if(period==='ano'){
-    return d.getFullYear()===now.getFullYear();
+
+  if(period === 'mes'){
+    return d.getFullYear() === now.getFullYear() &&
+           d.getMonth() === now.getMonth();
   }
+
+  if(period === 'ano'){
+    return d.getFullYear() === now.getFullYear();
+  }
+
+  if(period === 'todos'){
+    return true;
+  }
+
   return true;
 }
 
