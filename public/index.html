@@ -450,7 +450,32 @@
         <span class="label">Total do período</span>
         <span class="value" id="resumo-total">0</span>
       </div>
-    </div>
+
+      <hr>
+
+<h3>Totais por dia</h3>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Total do dia</th>
+      </tr>
+    </thead>
+
+    <tbody id="resumo-diario-body"></tbody>
+  </table>
+</div>
+
+<div
+  class="empty"
+  id="resumo-diario-empty"
+  style="display:none;"
+>
+  <span class="big">Nenhum total diário encontrado.</span>
+  </div>
+
   </section>
 
   <!-- AUDITORIA -->
@@ -765,6 +790,48 @@ function renderResumo(){
   });
 
   document.getElementById('resumo-total').textContent = grandTotal;
+
+  // ---------- TOTAIS POR DIA ----------
+const diarioBody = document.getElementById('resumo-diario-body');
+const diarioEmpty = document.getElementById('resumo-diario-empty');
+
+diarioBody.innerHTML = '';
+
+const totaisPorDia = {};
+
+filtered.forEach(r => {
+  if (!totaisPorDia[r.date]) {
+    totaisPorDia[r.date] = 0;
+  }
+
+  totaisPorDia[r.date] += Number(r.count) || 0;
+});
+
+const dias = Object.keys(totaisPorDia).sort((a, b) =>
+  b.localeCompare(a)
+);
+
+if (dias.length === 0) {
+  diarioEmpty.style.display = 'block';
+} else {
+  diarioEmpty.style.display = 'none';
+
+  dias.forEach(data => {
+    const tr = document.createElement('tr');
+
+    const dataFormatada = new Date(
+      data + 'T00:00:00'
+    ).toLocaleDateString('pt-BR');
+
+    tr.innerHTML = `
+      <td>${dataFormatada}</td>
+      <td><strong>${totaisPorDia[data]}</strong></td>
+    `;
+
+    diarioBody.appendChild(tr);
+  });
+}
+
 }
 
 async function renderAuditoria(){
