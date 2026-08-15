@@ -6,6 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2B3A55">
 <title>Contador de Salas</title>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -342,14 +344,37 @@
     .filters{gap:6px;}
     .filters button{flex:1 1 calc(50% - 6px);text-align:center;padding:10px 8px;min-height:40px;}
 
+
     .header-brand{
-      flex-direction:column;
-      align-items:flex-start;
-      gap:10px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
     }
 
     .header-logo{
-      width:80px;
+      width: 200px;
+      height: auto;
+    }
+
+    .header-text h1{
+      font-size: 28px;
+    }
+
+    .header-text p{
+      font-size: 12px;
+    }
+
+    .header-brand{
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .header-logo{
+      width: 260px;
+      height: auto;
+      object-fit: contain;
+      flex-shrink: 0;
     }
 
     .header-text h1{
@@ -515,6 +540,9 @@
   }
 
 </style>
+
+
+
 </head>
 <body>
 
