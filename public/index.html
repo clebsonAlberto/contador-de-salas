@@ -1279,17 +1279,40 @@ function toast(msg){
 
 async function loadRecords(){
   try{
+
     const res = await fetch('/api/registros');
+
+    if (!res.ok) {
+      const erro = await res.json().catch(() => ({}));
+      throw new Error(
+        erro.erro ||
+        erro.error ||
+        `Erro HTTP ${res.status}`
+      );
+    }
+
     const data = await res.json();
 
-records = data.map(r => ({
-  ...r,
-  date: String(r.date).slice(0, 10)
-}));
+    if (!Array.isArray(data)) {
+      throw new Error('Resposta inválida da API.');
+    }
+
+    records = data.map(r => ({
+      ...r,
+      date: String(r.date).slice(0, 10)
+    }));
+
+    console.log('Registros carregados:', records.length);
+
   }catch(e){
+
+    console.error('Erro em loadRecords:', e);
+
     records = [];
-    toast('Não foi possível conectar ao servidor.');
+
+    toast('Não foi possível carregar os registros.');
   }
+}
 
 function mostrarUsuario(usuario) {
   const nome = document.getElementById('usuario-nome');
@@ -1321,9 +1344,8 @@ document.getElementById('btn-logout')
     mostrarLogin();
   });
 
-}
 
-// ---------- Registrar ----------
+  // ---------- Registrar ----------
 function buildRoomsGrid(){
   const grid = document.getElementById('rooms-grid');
   grid.innerHTML = '';
