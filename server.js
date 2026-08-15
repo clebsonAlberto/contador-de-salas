@@ -162,11 +162,25 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
+//====================================================== 
+// MIDDLEWARE PARA EXIGIR LOGIN 
+//======================================================
+
+function exigirLogin(req, res, next) {
+  if (!req.session.usuario) {
+    return res.status(401).json({
+      erro: 'Acesso não autorizado.'
+    });
+  }
+
+  next();
+}
+
 // =====================================================
 // LISTAR TODOS OS REGISTROS
 // =====================================================
 
-app.get('/api/registros', async (req, res) => {
+app.get('/api/registros', exigirLogin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -194,7 +208,7 @@ app.get('/api/registros', async (req, res) => {
 // LISTAR AUDITORIA DOS REGISTROS
 // ================================================
 
-app.get('/api/auditoria', async (req, res) => {
+app.get('/api/auditoria', exigirLogin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -228,7 +242,7 @@ app.get('/api/auditoria', async (req, res) => {
 // SALVAR CONTAGENS DE UM DIA
 // =====================================================
 
-app.post('/api/registros/dia', async (req, res) => {
+app.post('/api/registros/dia', exigirLogin, async (req, res) => {
 
   const { date, contagens } = req.body;
 
@@ -299,7 +313,7 @@ app.post('/api/registros/dia', async (req, res) => {
 // ATUALIZAR UM REGISTRO
 // =====================================================
 
-app.put('/api/registros/:id', async (req, res) => {
+app.put('/api/registros/:id', exigirLogin, async (req, res) => {
 
   const { count } = req.body;
   const { id } = req.params;
@@ -343,7 +357,7 @@ app.put('/api/registros/:id', async (req, res) => {
 // EXCLUIR UM REGISTRO
 // =====================================================
 
-app.delete('/api/registros/:id', async (req, res) => {
+app.delete('/api/registros/:id', exigirLogin, async (req, res) => {
 
   const { id } = req.params;
 
