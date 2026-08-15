@@ -342,6 +342,20 @@
     .filters{gap:6px;}
     .filters button{flex:1 1 calc(50% - 6px);text-align:center;padding:10px 8px;min-height:40px;}
 
+    .header-brand{
+      flex-direction:column;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    .header-logo{
+      width:80px;
+    }
+
+    .header-text h1{
+      font-size:32px;
+    }
+
     /* Tabela de registros vira lista de cartões */
     #registros-table thead{display:none;}
     #registros-table, #registros-table tbody, #registros-table tr, #registros-table td{
@@ -471,7 +485,32 @@
 
     
 
-    }  
+    } 
+    
+    .header-brand{
+      display:flex;
+      align-items:center;
+      gap:20px;
+    }
+
+    .header-logo{
+      width:110px;
+      height:auto;
+      object-fit:contain;
+      flex-shrink:0;
+    }
+
+    .header-text{
+      flex:1;
+    }
+
+    .header-text h1{
+      margin:0;
+    }
+
+    .header-text p{
+      margin-top:6px;
+    }
     
   }
 
@@ -480,9 +519,21 @@
 <body>
 
 <header>
-  <div class="eyebrow">Registro diário</div>
-  <h1>Contador de Salas</h1>
-  <p>Contagem de alunos por sala — dados compartilhados entre todos que acessam este link</p>
+  <div class="header-brand">
+
+    <img
+      src="images/logo-contador.png"
+      alt="Logo Contador de Salas"
+      class="header-logo"
+    >
+
+    <div class="header-text">
+      <div class="eyebrow">Registro diário</div>
+      <h1>Contador de Salas</h1>
+      <p>Contagem de alunos por sala — dados compartilhados entre todos que acessam este link</p>
+    </div>
+
+  </div>
 </header>
 
 <nav>
