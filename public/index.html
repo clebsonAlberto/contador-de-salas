@@ -798,6 +798,56 @@
     height:60px;
     font-size:28px;
   }
+
+  .user-area{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-left:auto;
+}
+
+.user-info{
+  display:flex;
+  flex-direction:column;
+  text-align:right;
+}
+
+.user-info strong{
+  color:var(--ink);
+}
+
+.user-info span{
+  font-size:12px;
+  opacity:.7;
+}
+
+#btn-logout{
+  border:none;
+  border-radius:8px;
+  padding:9px 14px;
+  background:var(--red);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+
+#btn-logout:hover{
+  filter:brightness(.92);
+}
+
+@media (max-width:640px){
+  .user-area{
+    width:100%;
+    justify-content:space-between;
+    margin-left:0;
+    margin-top:10px;
+  }
+
+  .user-info{
+    text-align:left;
+  }
+}
+
 }
 
 
@@ -885,6 +935,18 @@
     <div id="app-screen" style="display:none;">
 
 <header>
+
+  <div class="user-area">
+  <div class="user-info">
+    <strong id="usuario-nome">Usuário</strong>
+    <span id="usuario-perfil">Perfil</span>
+  </div>
+
+  <button type="button" id="btn-logout">
+    Sair
+  </button>
+</div>
+
   <div class="header-brand">
 
       <div class="header-text">
@@ -1110,9 +1172,10 @@ async function verificarLogin() {
 
     if (dados.logado) {
       mostrarSistema();
+      mostrarUsuario(dados.usuario);
     } else {
       mostrarLogin();
-    }
+    }   
 
   } catch (erro) {
     console.error('Erro ao verificar login:', erro);
@@ -1158,6 +1221,7 @@ async function fazerLogin() {
 
     loginSenha.value = '';
     mostrarSistema();
+    mostrarUsuario(dados.usuario);
 
   } catch (erro) {
 
@@ -1211,6 +1275,37 @@ records = data.map(r => ({
     records = [];
     toast('Não foi possível conectar ao servidor.');
   }
+
+function mostrarUsuario(usuario) {
+  const nome = document.getElementById('usuario-nome');
+  const perfil = document.getElementById('usuario-perfil');
+
+  if (nome) {
+    nome.textContent = usuario.nome || usuario.usuario;
+  }
+
+  if (perfil) {
+    perfil.textContent =
+      usuario.perfil === 'admin'
+        ? 'Administrador'
+        : 'Usuário';
+  }
+}
+
+document.getElementById('btn-logout')
+  .addEventListener('click', async () => {
+    try {
+      await fetch('/api/logout', {
+        method: 'POST'
+      });
+    } catch (erro) {
+      console.error('Erro ao sair:', erro);
+    }
+
+    loginSenha.value = '';
+    mostrarLogin();
+  });
+
 }
 
 // ---------- Registrar ----------
