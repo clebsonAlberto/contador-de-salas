@@ -1165,6 +1165,20 @@ document.querySelectorAll('nav button').forEach(btn=>{
   });
 });
 
+// ---------- FILTROS DOS REGISTROS ----------
+document.querySelectorAll('#tab-registros .filters button[data-period]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document
+      .querySelectorAll('#tab-registros .filters button[data-period]')
+      .forEach(b => b.classList.remove('active'));
+
+    btn.classList.add('active');
+    currentPeriod = btn.dataset.period;
+    renderRegistros();
+  });
+});
+
+// ---------- FILTROS DO RESUMO ----------
 document.querySelectorAll('.filters button[data-rperiod]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.filters button[data-rperiod]').forEach(b=>b.classList.remove('active'));
