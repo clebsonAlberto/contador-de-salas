@@ -1,3 +1,5 @@
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 const express = require('express');
 const { Pool } = require('pg');
 
@@ -35,6 +37,130 @@ pool.query('SELECT NOW()')
 
 app.use(express.json());
 app.use(express.static('public'));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'troque-esta-chave-em-producao',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 8 * 60 * 60 * 1000
+  }
+}));
+
+// ==============================================
+// LOGIN
+// ==============================================
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const { usuario, senha } = req.body;
+
+    if (!usuario || !senha) {
+      return res.status(400).json({
+        erro: 'Informe usuário e senha.'
+      });
+    }
+
+    const resultado = await pool.query(
+      `SELECT id, nome, usuario, senha_hash, perfil, ativo
+       FROM usuarios
+       WHERE usuario = $1`,
+      [usuario]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(401).json({
+        erro: 'Usuário ou senha inválidos.'
+      });
+    }
+
+    const user = resultado.rows[0];
+
+    if (!user.ativo) {
+      return res.status(403).json({
+        erro: 'Usuário desativado.'
+      });
+    }
+
+    const senhaCorreta = await bcrypt.compare(
+      senha,
+      user.senha_hash
+    );
+
+    if (!senhaCorreta) {
+      return res.status(401).json({
+        erro: 'Usuário ou senha inválidos.'
+      });
+    }
+
+    req.session.usuario = {
+      id: user.id,
+      nome: user.nome,
+      usuario: user.usuario,
+      perfil: user.perfil
+    };
+
+    res.json({
+      sucesso: true,
+      usuario: {
+        id: user.id,
+        nome: user.nome,
+        usuario: user.usuario,
+        perfil: user.perfil
+      }
+    });
+
+  } catch (erro) {
+    console.error('Erro no login:', erro);
+
+    res.status(500).json({
+      erro: 'Erro interno ao realizar login.'
+    });
+  }
+});
+
+// ==============================================
+// VERIFICAR USUÁRIO LOGADO
+// ==============================================
+
+app.get('/api/me', (req, res) => {
+  if (!req.session.usuario) {
+    return res.status(401).json({
+      logado: false
+    });
+  }
+
+  res.json({
+    logado: true,
+    usuario: req.session.usuario
+  });
+});
+
+
+// ==============================================
+// LOGOUT
+// ==============================================
+
+app.post('/api/logout', (req, res) => {
+  req.session.destroy((erro) => {
+
+    if (erro) {
+      console.error('Erro ao encerrar sessão:', erro);
+
+      return res.status(500).json({
+        erro: 'Não foi possível sair do sistema.'
+      });
+    }
+
+    res.clearCookie('connect.sid');
+
+    res.json({
+      sucesso: true
+    });
+  });
+});
 
 // =====================================================
 // LISTAR TODOS OS REGISTROS

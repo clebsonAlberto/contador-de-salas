@@ -537,6 +537,50 @@
       margin-top:6px;
     }
     
+    #login-screen{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-card{
+      width:100%;
+      max-width:380px;
+      background:var(--paper);
+      border:1px solid var(--paper-line);
+      padding:30px;
+    }
+
+    .login-card h1{
+      margin-top:0;
+      color:var(--ink);
+    }
+
+    .login-card label{
+      display:block;
+      margin-top:16px;
+      margin-bottom:6px;
+      font-weight:600;
+    }
+
+    .login-card input{
+      width:100%;
+      box-sizing:border-box;
+    }
+
+    .login-card button{
+      width:100%;
+      margin-top:20px;
+    }
+
+    #login-msg{
+      margin-top:14px;
+      min-height:20px;
+      color:var(--red);
+    }
+
   }
 
 </style>
@@ -545,6 +589,34 @@
 
 </head>
 <body>
+
+  <div id="login-screen">
+  <div class="login-card">
+    <h1>Contador de Salas</h1>
+    <p>Acesse o sistema</p>
+
+    <label for="login-usuario">Usuário</label>
+    <input
+      type="text"
+      id="login-usuario"
+      autocomplete="username"
+    >
+
+    <label for="login-senha">Senha</label>
+    <input
+      type="password"
+      id="login-senha"
+      autocomplete="current-password"
+    >
+
+    <button type="button" id="btn-login">
+      Entrar
+    </button>
+
+    <div id="login-msg"></div>
+  </div>
+</div>
+    <div id="app-screen" style="display:none;">
 
 <header>
   <div class="header-brand">
@@ -734,7 +806,117 @@
 
 <div class="toast" id="toast"></div>
 
+</div>
+
 <script>
+
+// ==========================================
+// LOGIN / SESSÃO
+// ==========================================
+
+const loginScreen = document.getElementById('login-screen');
+const appScreen = document.getElementById('app-screen');
+const loginUsuario = document.getElementById('login-usuario');
+const loginSenha = document.getElementById('login-senha');
+const loginMsg = document.getElementById('login-msg');
+const btnLogin = document.getElementById('btn-login');
+
+function mostrarLogin() {
+  loginScreen.style.display = 'flex';
+  appScreen.style.display = 'none';
+}
+
+function mostrarSistema() {
+  loginScreen.style.display = 'none';
+  appScreen.style.display = 'block';
+}
+
+async function verificarLogin() {
+  try {
+    const resposta = await fetch('/api/me');
+
+    if (!resposta.ok) {
+      mostrarLogin();
+      return;
+    }
+
+    const dados = await resposta.json();
+
+    if (dados.logado) {
+      mostrarSistema();
+    } else {
+      mostrarLogin();
+    }
+
+  } catch (erro) {
+    console.error('Erro ao verificar login:', erro);
+    mostrarLogin();
+  }
+}
+
+async function fazerLogin() {
+
+  const usuario = loginUsuario.value.trim();
+  const senha = loginSenha.value;
+
+  loginMsg.textContent = '';
+
+  if (!usuario || !senha) {
+    loginMsg.textContent = 'Informe usuário e senha.';
+    return;
+  }
+
+  btnLogin.disabled = true;
+  btnLogin.textContent = 'Entrando...';
+
+  try {
+
+    const resposta = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        usuario,
+        senha
+      })
+    });
+
+    const dados = await resposta.json();
+
+    if (!resposta.ok) {
+      loginMsg.textContent =
+        dados.erro || 'Não foi possível entrar.';
+      return;
+    }
+
+    loginSenha.value = '';
+    mostrarSistema();
+
+  } catch (erro) {
+
+    console.error('Erro no login:', erro);
+    loginMsg.textContent =
+      'Erro de comunicação com o servidor.';
+
+  } finally {
+
+    btnLogin.disabled = false;
+    btnLogin.textContent = 'Entrar';
+
+  }
+}
+
+btnLogin.addEventListener('click', fazerLogin);
+
+loginSenha.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    fazerLogin();
+  }
+});
+
+verificarLogin();
+
 const ROOMS = ["1°A","1°B","1°C","2°A","2°B","2°C","3°A","3°B","3°C","4°A","4°B","5°A","5°B"];
 let records = []; // {id, date: 'YYYY-MM-DD', room, count}
 
