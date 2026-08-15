@@ -1171,11 +1171,20 @@ async function verificarLogin() {
     const dados = await resposta.json();
 
     if (dados.logado) {
+
       mostrarSistema();
       mostrarUsuario(dados.usuario);
+
+      await loadRecords();
+      loadDateIntoForm(todayStr());
+      renderRegistros();
+      renderResumo();
+
     } else {
-      mostrarLogin();
-    }   
+
+  mostrarLogin();
+
+}  
 
   } catch (erro) {
     console.error('Erro ao verificar login:', erro);
@@ -1220,8 +1229,14 @@ async function fazerLogin() {
     }
 
     loginSenha.value = '';
+
     mostrarSistema();
     mostrarUsuario(dados.usuario);
+
+    await loadRecords();
+    loadDateIntoForm(todayStr());
+    renderRegistros();
+    renderResumo();
 
   } catch (erro) {
 
@@ -1814,10 +1829,7 @@ document.getElementById('btn-save').addEventListener('click', saveDay);
 async function init(){
   document.getElementById('reg-date').value = todayStr();
   buildRoomsGrid();
-  await loadRecords();
-  loadDateIntoForm(todayStr());
-  renderRegistros();
-  renderResumo();
+    
 }
 init();
 
