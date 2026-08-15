@@ -449,11 +449,40 @@
     align-items:center;
     }
 
-  @media print {
+    .login-layout{
+      display:block;
+    }
+
+    .login-brand{
+      display:none;
+    }
+
+    .login-area{
+      min-height:100vh;
+      padding:20px;
+    }
+
+    .login-card{
+      max-width:100%;
+      padding:28px 22px;
+      border-radius:14px;
+    }
+
+    .login-card h2{
+      font-size:28px;
+    }
+
+    .login-lock{
+      width:60px;
+      height:60px;
+      font-size:28px;
+    }
+
+    @media print {
 
     body {
-    background: white;
-    }
+      background: white;
+      }
 
     header,
     nav,
@@ -539,40 +568,196 @@
     
     #login-screen{
       min-height:100vh;
+      background:#eef4fb;
+    }
+
+    .login-layout{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns: 44% 56%;
+    }
+
+    .login-brand{
+      background:
+      linear-gradient(
+      135deg,
+      rgba(10,54,111,.97),
+      rgba(7,40,86,.94)
+      );
+      color:white;
       display:flex;
       align-items:center;
       justify-content:center;
+      padding:50px;
+    }
+
+    .login-brand-content{
+  max-width:420px;
+    }
+
+    .login-brand-icon{
+      font-size:72px;
+      margin-bottom:20px;
+    }
+
+    .login-brand h1{
+      font-size:54px;
+      line-height:.95;
+      text-transform:uppercase;
+      margin:0;
+    }
+
+    .login-brand h1 span{
+      color:#42a5ff;
+    }
+
+    .login-brand p{
+      margin-top:30px;
+      font-size:20px;
+      line-height:1.5;
+      border-top:2px solid #42a5ff;
+      padding-top:20px;
+    }
+
+    .login-brand-box{
+      margin-top:35px;
       padding:20px;
+      border:1px solid rgba(255,255,255,.25);
+      border-radius:12px;
+      background:rgba(255,255,255,.07);
+    }
+
+    .login-brand-box strong,
+    .login-brand-box span{
+     display:block;
+    }
+
+    .login-brand-box span{
+      margin-top:6px;
+      opacity:.9;
+    }
+
+    .login-area{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:30px;
     }
 
     .login-card{
       width:100%;
-      max-width:380px;
-      background:var(--paper);
-      border:1px solid var(--paper-line);
-      padding:30px;
+      max-width:460px;
+      background:white;
+      border-radius:18px;
+      padding:40px;
+      box-shadow:0 18px 50px rgba(0,0,0,.12);
     }
 
-    .login-card h1{
-      margin-top:0;
-      color:var(--ink);
+    .login-lock{
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 20px;
+      background:#eaf2ff;
+      font-size:34px;
+    }
+
+    .login-card h2{
+      text-align:center;
+      margin:0;
+      color:#14213d;
+      font-size:32px;
+    }
+
+    .login-subtitle{
+      text-align:center;
+      color:#6c7890;
+      margin:8px 0 30px;
     }
 
     .login-card label{
       display:block;
-      margin-top:16px;
-      margin-bottom:6px;
-      font-weight:600;
+      margin-top:18px;
+      margin-bottom:7px;
+      color:#164f9c;
+      font-weight:700;
+      font-size:13px;
+      text-transform:uppercase;
     }
 
     .login-card input{
       width:100%;
       box-sizing:border-box;
+      padding:14px 15px;
+      border:1px solid #cfd8e6;
+      border-radius:8px;
+      font-size:16px;
+      background:white;
     }
 
-    .login-card button{
+    .login-card input:focus{
+      outline:none;
+      border-color:#2463d4;
+      box-shadow:0 0 0 3px rgba(36,99,212,.12);
+    }
+
+    #btn-login{
       width:100%;
+      margin-top:24px;
+      padding:15px;
+      border:none;
+      border-radius:8px;
+      background:#1f5fd1;
+      color:white;
+      font-size:17px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    #btn-login:hover{
+      filter:brightness(.95);
+    }
+
+    #btn-login:disabled{
+      opacity:.65;
+      cursor:wait;
+    }
+
+    #login-msg{
+      margin-top:14px;
+      min-height:20px;
+      text-align:center;
+      color:#b42318;
+      font-weight:600;
+    }
+
+    .login-info{
+      margin-top:22px;
+      padding:16px;
+      background:#edf4ff;
+      border-radius:10px;
+      color:#355070;
+      font-size:14px;
+    }
+
+    .login-info strong,
+    .login-info span{
+  display:block;
+    }
+
+    .login-info strong{
+      color:#164f9c;
+      margin-bottom:5px;
+    }
+
+    .login-secure{
       margin-top:20px;
+      color:#68758a;
+      font-size:14px;
     }
 
     #login-msg{
@@ -591,29 +776,76 @@
 <body>
 
   <div id="login-screen">
-  <div class="login-card">
-    <h1>Contador de Salas</h1>
-    <p>Acesse o sistema</p>
+  <div class="login-layout">
 
-    <label for="login-usuario">Usuário</label>
-    <input
-      type="text"
-      id="login-usuario"
-      autocomplete="username"
-    >
+    <div class="login-brand">
+      <div class="login-brand-content">
+        <div class="login-brand-icon">▣</div>
 
-    <label for="login-senha">Senha</label>
-    <input
-      type="password"
-      id="login-senha"
-      autocomplete="current-password"
-    >
+        <h1>Contador<br><span>de Salas</span></h1>
 
-    <button type="button" id="btn-login">
-      Entrar
-    </button>
+        <p>
+          Sistema web de contagem de alunos por sala
+        </p>
 
-    <div id="login-msg"></div>
+        <div class="login-brand-box">
+          <strong>Acesso restrito</strong>
+          <span>Informe suas credenciais para continuar</span>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="login-area">
+
+      <div class="login-card">
+
+        <div class="login-lock">🔒</div>
+
+        <h2>Acesse o sistema</h2>
+        <p class="login-subtitle">
+          Faça login para continuar
+        </p>
+
+        <label for="login-usuario">Usuário</label>
+
+        <input
+          type="text"
+          id="login-usuario"
+          autocomplete="username"
+          placeholder="Digite seu usuário"
+        >
+
+        <label for="login-senha">Senha</label>
+
+        <input
+          type="password"
+          id="login-senha"
+          autocomplete="current-password"
+          placeholder="Digite sua senha"
+        >
+
+        <button type="button" id="btn-login">
+          Entrar
+        </button>
+
+        <div id="login-msg"></div>
+
+        <div class="login-info">
+          <strong>Importante</strong>
+          <span>
+            Use seu usuário e senha para acessar o sistema.
+          </span>
+        </div>
+
+      </div>
+
+      <div class="login-secure">
+        🔒 Sistema seguro e protegido
+      </div>
+
+    </div>
+
   </div>
 </div>
     <div id="app-screen" style="display:none;">
