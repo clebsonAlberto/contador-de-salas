@@ -249,6 +249,8 @@ app.get('/api/auditoria', exigirLogin, async (req, res) => {
 
 app.post('/api/registros/dia', exigirLogin, async (req, res) => {
 
+  
+  const usuarioLogado = req.session.usuario?.usuario || 'desconhecido';
   const { date, contagens } = req.body;
 
   if (!date || !Array.isArray(contagens)) {
@@ -262,6 +264,10 @@ app.post('/api/registros/dia', exigirLogin, async (req, res) => {
   try {
 
     await client.query('BEGIN');
+    await client.query(
+      `SELECT set_config('app.usuario', $1, true)`,
+      [usuarioLogado]
+    );
 
     for (const item of contagens) {
 
@@ -320,12 +326,22 @@ app.post('/api/registros/dia', exigirLogin, async (req, res) => {
 
 app.put('/api/registros/:id', exigirLogin, async (req, res) => {
 
+  const usuarioLogado = req.session.usuario?.usuario || 'desconhecido';
   const { count } = req.body;
   const { id } = req.params;
 
+  const client = await pool.connect();
+
   try {
 
-    const result = await pool.query(`
+    await client.query('BEGIN');
+
+    await client.query(
+      `SELECT set_config('app.usuario', $1, true)`,
+      [usuarioLogado]
+    );
+
+    const result = await client.query(`
       UPDATE registros
       SET
         count = $1,
@@ -338,10 +354,14 @@ app.put('/api/registros/:id', exigirLogin, async (req, res) => {
     ]);
 
     if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+
       return res.status(404).json({
         error: 'registro não encontrado'
       });
     }
+
+    await client.query('COMMIT');
 
     res.json({
       ok: true,
@@ -350,11 +370,18 @@ app.put('/api/registros/:id', exigirLogin, async (req, res) => {
 
   } catch (error) {
 
+    await client.query('ROLLBACK');
+
     console.error('Erro ao atualizar registro:', error);
 
     res.status(500).json({
       error: 'Erro ao atualizar registro'
     });
+
+  } finally {
+
+    client.release();
+
   }
 });
 
@@ -364,21 +391,35 @@ app.put('/api/registros/:id', exigirLogin, async (req, res) => {
 
 app.delete('/api/registros/:id', exigirLogin, async (req, res) => {
 
+  const usuarioLogado = req.session.usuario?.usuario || 'desconhecido';
   const { id } = req.params;
+
+  const client = await pool.connect();
 
   try {
 
-    const result = await pool.query(`
+    await client.query('BEGIN');
+
+    await client.query(
+      `SELECT set_config('app.usuario', $1, true)`,
+      [usuarioLogado]
+    );
+
+    const result = await client.query(`
       DELETE FROM registros
       WHERE id = $1
       RETURNING *
     `, [id]);
 
     if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+
       return res.status(404).json({
         error: 'registro não encontrado'
       });
     }
+
+    await client.query('COMMIT');
 
     res.json({
       ok: true,
@@ -387,11 +428,18 @@ app.delete('/api/registros/:id', exigirLogin, async (req, res) => {
 
   } catch (error) {
 
+    await client.query('ROLLBACK');
+
     console.error('Erro ao excluir registro:', error);
 
     res.status(500).json({
       error: 'Erro ao excluir registro'
     });
+
+  } finally {
+
+    client.release();
+
   }
 });
 
