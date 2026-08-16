@@ -1488,6 +1488,9 @@ function renderRegistros(){
   if(dates.length===0){
     emptyEl.style.display='block';
     return;
+
+  aplicarPermissoes();  
+
   }
   emptyEl.style.display='none';
 
@@ -1507,8 +1510,15 @@ function renderRegistros(){
         <td class="num" data-id="${rec.id}"><span class="display-count">${rec.count}</span><input type="number" min="0" value="${rec.count}" style="display:none;"></td>
         <td>
           <div class="row-actions">
-            <button class="ghost btn-edit">Editar</button>
-            <button class="ghost danger btn-delete">Excluir</button>
+            <td>
+              <button class="ghost btn-edit somente-admin" data-id="${r.id}">
+                Editar
+              </button>
+
+              <button class="danger btn-delete somente-admin" data-id="${r.id}">
+                Excluir
+              </button>
+            </td>
           </div>
         </td>
       `;
