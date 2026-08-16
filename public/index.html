@@ -1139,6 +1139,8 @@
 
 <script>
 
+let usuarioAtual = null;
+
 // ==========================================
 // LOGIN / SESSÃO
 // ==========================================
@@ -1329,6 +1331,27 @@ function mostrarUsuario(usuario) {
         ? 'Administrador'
         : 'Usuário';
   }
+
+  aplicarPermissoes();
+
+function aplicarPermissoes() {
+  const ehAdmin = usuarioAtual?.perfil === 'admin';
+
+  // Aba Auditoria
+  const abaAuditoria = document.querySelector(
+    '[data-tab="auditoria"]'
+  );
+
+  if (abaAuditoria) {
+    abaAuditoria.style.display = ehAdmin ? '' : 'none';
+  }
+
+  // Elementos exclusivos do administrador
+  document.querySelectorAll('.somente-admin').forEach(elemento => {
+    elemento.style.display = ehAdmin ? '' : 'none';
+  });
+}  
+
 }
 
 document.getElementById('btn-logout')

@@ -179,6 +179,23 @@ function exigirLogin(req, res, next) {
   }
 
   next();
+
+function exigirAdmin(req, res, next) {
+  if (!req.session.usuario) {
+    return res.status(401).json({
+      erro: 'Acesso não autorizado.'
+    });
+  }
+
+  if (req.session.usuario.perfil !== 'admin') {
+    return res.status(403).json({
+      erro: 'Apenas administradores podem realizar esta ação.'
+    });
+  }
+
+  next();
+}
+
 }
 
 // =====================================================
@@ -213,7 +230,7 @@ app.get('/api/registros', exigirLogin, async (req, res) => {
 // LISTAR AUDITORIA DOS REGISTROS
 // ================================================
 
-app.get('/api/auditoria', exigirLogin, async (req, res) => {
+app.get('/api/auditoria', exigirAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -325,7 +342,7 @@ app.post('/api/registros/dia', exigirLogin, async (req, res) => {
 // ATUALIZAR UM REGISTRO
 // =====================================================
 
-app.put('/api/registros/:id', exigirLogin, async (req, res) => {
+app.put('/api/registros/:id', exigirAdmin, async (req, res) => {
 
   const usuarioLogado = req.session.usuario?.usuario || 'desconhecido';
   const { count } = req.body;
@@ -390,7 +407,7 @@ app.put('/api/registros/:id', exigirLogin, async (req, res) => {
 // EXCLUIR UM REGISTRO
 // =====================================================
 
-app.delete('/api/registros/:id', exigirLogin, async (req, res) => {
+app.delete('/api/registros/:id', exigirAdmin, async (req, res) => {
 
   const usuarioLogado = req.session.usuario?.usuario || 'desconhecido';
   const { id } = req.params;
