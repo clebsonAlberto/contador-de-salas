@@ -226,6 +226,7 @@ app.get('/api/auditoria', exigirLogin, async (req, res) => {
         count_anterior,
         room_anterior,
         date_anterior,
+        usuario,
         alterado_em
       FROM auditoria_registros
       ORDER BY alterado_em DESC

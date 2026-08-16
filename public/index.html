@@ -1113,6 +1113,7 @@
         <thead>
           <tr>
             <th>Data/Hora</th>
+            <th>Usuário</th>
             <th>Ação</th>
             <th>Sala</th>
             <th>Antes</th>
@@ -1758,6 +1759,7 @@ async function renderAuditoria(){
 
       tr.innerHTML = `
         <td>${dataHora}</td>
+        <td>${r.usuario || '-'}</td>
         <td>${item.acao}</td>
         <td>${item.room || item.room_anterior || '-'}</td>
         <td>${antes}</td>
