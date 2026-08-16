@@ -1489,9 +1489,8 @@ function renderRegistros(){
     emptyEl.style.display='block';
     return;
 
-  aplicarPermissoes();  
-
   }
+
   emptyEl.style.display='none';
 
   dates.forEach(date=>{
@@ -1508,17 +1507,17 @@ function renderRegistros(){
       tr.innerHTML = `
         <td>${rec.room}</td>
         <td class="num" data-id="${rec.id}"><span class="display-count">${rec.count}</span><input type="number" min="0" value="${rec.count}" style="display:none;"></td>
-        <td>
+        
           <div class="row-actions">
-            <td>
-              <button class="ghost btn-edit somente-admin" data-id="${r.id}">
+            
+              <button class="ghost btn-edit somente-admin" data-id="${rec.id}">
                 Editar
               </button>
 
-              <button class="danger btn-delete somente-admin" data-id="${r.id}">
+              <button class="danger btn-delete somente-admin" data-id="${rec.id}">
                 Excluir
               </button>
-            </td>
+            
           </div>
         </td>
       `;
@@ -1613,6 +1612,9 @@ totalRow.innerHTML = `
 body.appendChild(totalRow);
 // ---------- FIM TOTAL DO DIA ----------
   });
+
+aplicarPermissoes();
+
 }
 
 // ---------- Resumo ----------
@@ -1697,6 +1699,9 @@ if (dias.length === 0) {
 
     diarioBody.appendChild(tr);
   });
+
+
+
 }
 
 }
