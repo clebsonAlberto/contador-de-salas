@@ -1318,6 +1318,9 @@ async function loadRecords(){
 }
 
 function mostrarUsuario(usuario) {
+
+  usuarioAtual = usuario;
+
   const nome = document.getElementById('usuario-nome');
   const perfil = document.getElementById('usuario-perfil');
 
@@ -1335,22 +1338,34 @@ function mostrarUsuario(usuario) {
   aplicarPermissoes();
 
 function aplicarPermissoes() {
-  const ehAdmin = usuarioAtual?.perfil === 'admin';
 
-  // Aba Auditoria
-  const abaAuditoria = document.querySelector(
-    '[data-tab="auditoria"]'
+  const perfilAtual = String(
+    usuarioAtual?.perfil || ''
+  ).trim().toLowerCase();
+
+  const ehAdmin = perfilAtual === 'admin';
+
+  console.log(
+    'Usuário atual:',
+    usuarioAtual,
+    'É admin:',
+    ehAdmin
   );
 
-  if (abaAuditoria) {
-    abaAuditoria.style.display = ehAdmin ? '' : 'none';
-  }
+  // Mostra/esconde TODOS os botões da Auditoria
+  document
+    .querySelectorAll('[data-tab="auditoria"]')
+    .forEach(botao => {
+      botao.style.display = ehAdmin ? '' : 'none';
+    });
 
   // Elementos exclusivos do administrador
-  document.querySelectorAll('.somente-admin').forEach(elemento => {
-    elemento.style.display = ehAdmin ? '' : 'none';
-  });
-}  
+  document
+    .querySelectorAll('.somente-admin')
+    .forEach(elemento => {
+      elemento.style.display = ehAdmin ? '' : 'none';
+    });
+}
 
 }
 
