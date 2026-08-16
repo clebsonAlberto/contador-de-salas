@@ -174,28 +174,32 @@ app.post('/api/logout', (req, res) => {
 function exigirLogin(req, res, next) {
   if (!req.session.usuario) {
     return res.status(401).json({
-      erro: 'Acesso não autorizado.'
-    });
-  }
-
-  next();
-
-function exigirAdmin(req, res, next) {
-  if (!req.session.usuario) {
-    return res.status(401).json({
-      erro: 'Acesso não autorizado.'
-    });
-  }
-
-  if (req.session.usuario.perfil !== 'admin') {
-    return res.status(403).json({
-      erro: 'Apenas administradores podem realizar esta ação.'
+      error: 'Usuário não autenticado.'
     });
   }
 
   next();
 }
 
+
+// ==========================================
+// SOMENTE ADMINISTRADOR
+// ==========================================
+
+function exigirAdmin(req, res, next) {
+  if (!req.session || !req.session.usuario) {
+    return res.status(401).json({
+      error: 'Usuário não autenticado.'
+    });
+  }
+
+  if (req.session.usuario.perfil !== 'admin') {
+    return res.status(403).json({
+      error: 'Acesso permitido somente ao administrador.'
+    });
+  }
+
+  next();
 }
 
 // =====================================================
