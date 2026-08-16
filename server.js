@@ -167,6 +167,235 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
+
+// ==============================================
+// LISTAR USUÁRIOS - SOMENTE ADMIN
+// ==============================================
+
+app.get('/api/usuarios', exigirAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        nome,
+        usuario,
+        perfil,
+        ativo,
+        created_at
+      FROM usuarios
+      ORDER BY nome ASC
+    `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Erro ao listar usuários:', error);
+
+    res.status(500).json({
+      error: 'Erro ao listar usuários'
+    });
+  }
+});
+
+
+// ==============================================
+// CADASTRAR USUÁRIO - SOMENTE ADMIN
+// ==============================================
+
+app.post('/api/usuarios', exigirAdmin, async (req, res) => {
+  try {
+    const {
+      nome,
+      usuario,
+      senha,
+      perfil
+    } = req.body;
+
+    if (!nome || !usuario || !senha || !perfil) {
+      return res.status(400).json({
+        error: 'Nome, usuário, senha e perfil são obrigatórios.'
+      });
+    }
+
+    if (!['admin', 'usuario'].includes(perfil)) {
+      return res.status(400).json({
+        error: 'Perfil inválido.'
+      });
+    }
+
+    if (senha.length < 6) {
+      return res.status(400).json({
+        error: 'A senha deve ter pelo menos 6 caracteres.'
+      });
+    }
+
+    const existente = await pool.query(
+      `SELECT id
+       FROM usuarios
+       WHERE usuario = $1`,
+      [usuario.trim()]
+    );
+
+    if (existente.rowCount > 0) {
+      return res.status(409).json({
+        error: 'Este usuário já está cadastrado.'
+      });
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    const result = await pool.query(`
+      INSERT INTO usuarios
+      (
+        nome,
+        usuario,
+        senha_hash,
+        perfil,
+        ativo
+      )
+      VALUES ($1, $2, $3, $4, true)
+      RETURNING
+        id,
+        nome,
+        usuario,
+        perfil,
+        ativo,
+        created_at
+    `, [
+      nome.trim(),
+      usuario.trim(),
+      senhaHash,
+      perfil
+    ]);
+
+    res.status(201).json({
+      sucesso: true,
+      usuario: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Erro ao cadastrar usuário:', error);
+
+    res.status(500).json({
+      error: 'Erro ao cadastrar usuário.'
+    });
+  }
+});
+
+
+// ==============================================
+// ATIVAR / DESATIVAR USUÁRIO - SOMENTE ADMIN
+// ==============================================
+
+app.patch('/api/usuarios/:id/status', exigirAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ativo } = req.body;
+
+    if (typeof ativo !== 'boolean') {
+      return res.status(400).json({
+        error: 'O campo ativo deve ser true ou false.'
+      });
+    }
+
+    if (
+      Number(id) === Number(req.session.usuario.id) &&
+      ativo === false
+    ) {
+      return res.status(400).json({
+        error: 'Você não pode desativar o próprio usuário.'
+      });
+    }
+
+    const result = await pool.query(`
+      UPDATE usuarios
+      SET ativo = $1
+      WHERE id = $2
+      RETURNING
+        id,
+        nome,
+        usuario,
+        perfil,
+        ativo
+    `, [
+      ativo,
+      id
+    ]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: 'Usuário não encontrado.'
+      });
+    }
+
+    res.json({
+      sucesso: true,
+      usuario: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Erro ao alterar status do usuário:', error);
+
+    res.status(500).json({
+      error: 'Erro ao alterar status do usuário.'
+    });
+  }
+});
+
+
+// ==============================================
+// REDEFINIR SENHA - SOMENTE ADMIN
+// ==============================================
+
+app.patch('/api/usuarios/:id/senha', exigirAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { senha } = req.body;
+
+    if (!senha || senha.length < 6) {
+      return res.status(400).json({
+        error: 'A nova senha deve ter pelo menos 6 caracteres.'
+      });
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    const result = await pool.query(`
+      UPDATE usuarios
+      SET senha_hash = $1
+      WHERE id = $2
+      RETURNING
+        id,
+        nome,
+        usuario,
+        perfil,
+        ativo
+    `, [
+      senhaHash,
+      id
+    ]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: 'Usuário não encontrado.'
+      });
+    }
+
+    res.json({
+      sucesso: true,
+      usuario: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+
+    res.status(500).json({
+      error: 'Erro ao redefinir senha.'
+    });
+  }
+});
+
+
 //====================================================== 
 // MIDDLEWARE PARA EXIGIR LOGIN 
 //======================================================

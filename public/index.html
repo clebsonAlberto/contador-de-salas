@@ -963,6 +963,7 @@
   <button data-tab="registros">Registros</button>
   <button data-tab="resumo">Resumo</button>
   <button data-tab="auditoria">Auditoria</button>
+  <button data-tab="usuarios" class="somente-admin">Usuários</button>
 </nav>
 
 <main>
@@ -1131,6 +1132,84 @@
   </div>
 </section>
 
+  <!-- USUÁRIOS -->
+<section id="tab-usuarios" style="display:none;">
+  <div class="card">
+
+    <h2>Gerenciamento de usuários</h2>
+
+    <div class="user-admin-grid">
+
+      <div class="user-form-card">
+
+        <h3>Novo usuário</h3>
+
+        <label for="novo-usuario-nome">Nome</label>
+        <input
+          type="text"
+          id="novo-usuario-nome"
+          placeholder="Nome completo"
+        >
+
+        <label for="novo-usuario-login">Usuário</label>
+        <input
+          type="text"
+          id="novo-usuario-login"
+          placeholder="Nome de acesso"
+        >
+
+        <label for="novo-usuario-senha">Senha</label>
+        <input
+          type="password"
+          id="novo-usuario-senha"
+          placeholder="Mínimo 6 caracteres"
+        >
+
+        <label for="novo-usuario-perfil">Perfil</label>
+        <select id="novo-usuario-perfil">
+          <option value="usuario">Usuário</option>
+          <option value="admin">Administrador</option>
+        </select>
+
+        <button
+          type="button"
+          class="primary"
+          id="btn-criar-usuario"
+        >
+          Cadastrar usuário
+        </button>
+
+        <div id="usuario-msg"></div>
+
+      </div>
+
+      <div class="user-list-card">
+
+        <h3>Usuários cadastrados</h3>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Usuário</th>
+                <th>Perfil</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody id="usuarios-body"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -1140,6 +1219,240 @@
 <script>
 
 let usuarioAtual = null;
+
+
+//===============================================================
+// FUNÇÃO PARA ALTERAR O STATUS DE UM USUÁRIO (ATIVO / INATIVO)
+//===============================================================
+
+async function alterarStatusUsuario(id, ativoAtual) {
+  try {
+    const novoStatus = !ativoAtual;
+
+    const res = await fetch(`/api/usuarios/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ativo: novoStatus
+      })
+    });
+
+    const dados = await res.json();
+
+    if (!res.ok) {
+      alert(dados.error || 'Erro ao alterar status do usuário.');
+      return;
+    }
+
+    await carregarUsuarios();
+
+  } catch (erro) {
+    console.error('Erro ao alterar status:', erro);
+    alert('Erro de comunicação com o servidor.');
+  }
+}
+
+// ==================================================
+// FUNÇÃO PARA REDEFINIR A SENHA DE UM USUÁRIO
+// ==================================================
+
+async function redefinirSenhaUsuario(id) {
+  const novaSenha = prompt(
+    'Digite a nova senha do usuário (mínimo 6 caracteres):'
+  );
+
+  if (novaSenha === null) return;
+
+  if (novaSenha.length < 6) {
+    alert('A senha deve ter pelo menos 6 caracteres.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/usuarios/${id}/senha`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        senha: novaSenha
+      })
+    });
+
+    const dados = await res.json();
+
+    if (!res.ok) {
+      alert(dados.error || 'Erro ao redefinir senha.');
+      return;
+    }
+
+    alert('Senha redefinida com sucesso.');
+
+  } catch (erro) {
+    console.error('Erro ao redefinir senha:', erro);
+    alert('Erro de comunicação com o servidor.');
+  }
+}
+
+// ==================================================================
+//CARREGA A LISTA DE USUÁRIOS / CADASTRA NOVOS USUÁRIOS PELA TELA
+// ==================================================================
+
+async function carregarUsuarios() {
+  const tbody = document.getElementById('usuarios-body');
+
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  try {
+    const res = await fetch('/api/usuarios');
+
+    if (!res.ok) {
+      throw new Error('Erro ao carregar usuários.');
+    }
+
+    const usuarios = await res.json();
+
+    usuarios.forEach(usuario => {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${usuario.nome}</td>
+        <td>${usuario.usuario}</td>
+        <td>${usuario.perfil === 'admin' ? 'Administrador' : 'Usuário'}</td>
+        <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
+        <td>
+          <div class="row-actions">
+            <button
+              type="button"
+              class="ghost btn-status-usuario"
+              data-id="${usuario.id}"
+              data-ativo="${usuario.ativo}"
+            >
+              ${usuario.ativo ? 'Desativar' : 'Ativar'}
+            </button>
+
+            <button
+              type="button"
+              class="ghost btn-senha-usuario"
+              data-id="${usuario.id}"
+            >
+              Nova senha
+            </button>
+          </div>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+
+      const btnStatus = tr.querySelector('.btn-status-usuario');
+      const btnSenha = tr.querySelector('.btn-senha-usuario');
+
+      btnStatus.addEventListener('click', () => {
+      alterarStatusUsuario(
+        usuario.id,
+        usuario.ativo
+      );
+    });
+
+      btnSenha.addEventListener('click', () => {
+      redefinirSenhaUsuario(usuario.id);
+    });    
+
+    });
+
+  } catch (erro) {
+    console.error('Erro ao carregar usuários:', erro);
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Não foi possível carregar os usuários.
+        </td>
+      </tr>
+    `;
+  }
+
+// ==========================================  
+// FUNÇÃO CADASTRO
+// ==========================================
+
+async function criarUsuario() {
+  const nome = document
+    .getElementById('novo-usuario-nome')
+    .value.trim();
+
+  const usuario = document
+    .getElementById('novo-usuario-login')
+    .value.trim();
+
+  const senha = document
+    .getElementById('novo-usuario-senha')
+    .value;
+
+  const perfil = document
+    .getElementById('novo-usuario-perfil')
+    .value;
+
+  const msg = document.getElementById('usuario-msg');
+
+  msg.textContent = '';
+
+  if (!nome || !usuario || !senha) {
+    msg.textContent =
+      'Preencha nome, usuário e senha.';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/usuarios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nome,
+        usuario,
+        senha,
+        perfil
+      })
+    });
+
+    const dados = await res.json();
+
+    if (!res.ok) {
+      msg.textContent =
+        dados.error || 'Erro ao cadastrar usuário.';
+      return;
+    }
+
+    msg.textContent = 'Usuário cadastrado com sucesso.';
+
+    document.getElementById('novo-usuario-nome').value = '';
+    document.getElementById('novo-usuario-login').value = '';
+    document.getElementById('novo-usuario-senha').value = '';
+    document.getElementById('novo-usuario-perfil').value = 'usuario';
+
+    await carregarUsuarios();
+
+  } catch (erro) {
+    console.error('Erro ao cadastrar usuário:', erro);
+
+    msg.textContent =
+      'Erro de comunicação com o servidor.';
+  }
+}
+
+}
+
+document
+  .getElementById('btn-criar-usuario')
+  .addEventListener('click', criarUsuario);
+
+
 
 // ==========================================
 // LOGIN / SESSÃO
@@ -1862,7 +2175,7 @@ document.querySelectorAll('nav button').forEach(btn=>{
     document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
 
-    ['registrar','registros','resumo','auditoria'].forEach(tab=>{
+    ['registrar','registros','resumo','auditoria','usuarios'].forEach(tab=>{
       document.getElementById('tab-'+tab).style.display =
         (tab===btn.dataset.tab) ? 'block' : 'none';
     });
@@ -1870,6 +2183,11 @@ document.querySelectorAll('nav button').forEach(btn=>{
     if(btn.dataset.tab === 'auditoria'){
       renderAuditoria();
     }
+
+    if(btn.dataset.tab === 'usuarios'){
+  carregarUsuarios();
+    }
+
   });
 });
 
