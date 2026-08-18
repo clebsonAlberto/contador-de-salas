@@ -101,20 +101,39 @@ app.post('/api/login', async (req, res) => {
     }
 
     req.session.usuario = {
+  id: user.id,
+  nome: user.nome,
+  usuario: user.usuario,
+  perfil: user.perfil
+};
+
+req.session.save((erroSessao) => {
+
+  if (erroSessao) {
+    console.error('Erro ao salvar sessão:', erroSessao);
+
+    return res.status(500).json({
+      erro: 'Erro ao criar sessão do usuário.'
+    });
+  }
+
+  console.log(
+    'Sessão criada:',
+    req.sessionID,
+    req.session.usuario
+  );
+
+  res.json({
+    sucesso: true,
+    usuario: {
       id: user.id,
       nome: user.nome,
       usuario: user.usuario,
       perfil: user.perfil
-    };
+    }
+  });
 
-    res.json({
-      sucesso: true,
-      usuario: {
-        id: user.id,
-        nome: user.nome,
-        usuario: user.usuario,
-        perfil: user.perfil
-      }
+
     });
 
   } catch (erro) {
